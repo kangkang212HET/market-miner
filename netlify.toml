@@ -1,0 +1,8 @@
+[build]
+  publish = "public"
+  functions = "netlify/functions"
+
+[[redirects]]
+  from = "/api/suggest"
+  to = "/.netlify/functions/suggest"
+  status = 200

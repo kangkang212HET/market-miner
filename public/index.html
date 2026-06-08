@@ -1,0 +1,603 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>市场问题挖掘器 — KK Learning Tools</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --purple: #534AB7;
+    --purple-light: #EEEDFE;
+    --purple-mid: #7F77DD;
+    --purple-border: #AFA9EC;
+    --teal: #0F6E56;
+    --teal-light: #E1F5EE;
+    --teal-border: #5DCAA5;
+    --blue: #185FA5;
+    --blue-light: #E6F1FB;
+    --amber: #854F0B;
+    --amber-light: #FAEEDA;
+    --pink: #993556;
+    --pink-light: #FBEAF0;
+    --gray-light: #F1EFE8;
+    --gray-mid: #5F5E5A;
+    --text: #1a1a1a;
+    --text-muted: #666;
+    --border: #e0e0d8;
+    --bg: #fafaf8;
+    --surface: #ffffff;
+    --surface-alt: #f5f5f2;
+    --red-light: #FCEBEB;
+    --red-border: #F09595;
+    --red-text: #a32d2d;
+  }
+
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+  }
+
+  header {
+    background: var(--surface);
+    border-bottom: 0.5px solid var(--border);
+    padding: 0 2rem;
+    height: 56px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .logo {
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--purple);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .logo-dot {
+    width: 8px; height: 8px;
+    background: var(--purple);
+    border-radius: 50%;
+  }
+  .header-sub {
+    font-size: 12px;
+    color: var(--text-muted);
+  }
+
+  .container {
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 2rem 1.5rem;
+  }
+
+  .hero {
+    text-align: center;
+    margin-bottom: 2.5rem;
+  }
+  .hero h1 {
+    font-size: 26px;
+    font-weight: 700;
+    color: var(--text);
+    margin-bottom: 8px;
+  }
+  .hero p {
+    font-size: 14px;
+    color: var(--text-muted);
+    line-height: 1.7;
+  }
+
+  .search-wrap {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 1rem;
+  }
+  .search-wrap input {
+    flex: 1;
+    height: 48px;
+    font-size: 15px;
+    padding: 0 16px;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    background: var(--surface);
+    color: var(--text);
+    outline: none;
+    transition: border-color 0.15s, box-shadow 0.15s;
+  }
+  .search-wrap input:focus {
+    border-color: var(--purple-mid);
+    box-shadow: 0 0 0 3px rgba(127,119,221,0.15);
+  }
+  .search-wrap button {
+    height: 48px;
+    padding: 0 24px;
+    font-size: 14px;
+    font-weight: 600;
+    background: var(--purple);
+    color: #fff;
+    border: none;
+    border-radius: 10px;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: background 0.15s;
+  }
+  .search-wrap button:hover { background: #3C3489; }
+  .search-wrap button:disabled { background: #bbb; cursor: not-allowed; }
+
+  .chips {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    margin-bottom: 1.5rem;
+    align-items: center;
+  }
+  .chips-label { font-size: 12px; color: var(--text-muted); }
+  .chip {
+    font-size: 12px;
+    padding: 4px 14px;
+    border-radius: 20px;
+    border: 0.5px solid var(--border);
+    color: var(--text-muted);
+    background: var(--surface);
+    cursor: pointer;
+    transition: all 0.12s;
+  }
+  .chip:hover { background: var(--purple-light); color: var(--purple); border-color: var(--purple-border); }
+
+  .badges {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 1.5rem;
+    flex-wrap: wrap;
+  }
+  .badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 11px;
+    padding: 3px 10px;
+    border-radius: 10px;
+  }
+  .badge-real { background: var(--teal-light); color: var(--teal); border: 0.5px solid var(--teal-border); }
+  .badge-ai   { background: var(--purple-light); color: var(--purple); border: 0.5px solid var(--purple-border); }
+  .dot { display: inline-block; width: 6px; height: 6px; border-radius: 50%; }
+  .dot-g  { background: #1D9E75; }
+  .dot-ai { background: var(--purple-mid); }
+
+  .err {
+    font-size: 13px;
+    color: var(--red-text);
+    padding: 10px 14px;
+    border-radius: 8px;
+    background: var(--red-light);
+    border: 0.5px solid var(--red-border);
+    margin-bottom: 1rem;
+    display: none;
+  }
+  .err.show { display: block; }
+
+  .loading {
+    text-align: center;
+    padding: 3rem 1rem;
+    display: none;
+  }
+  .loading.show { display: block; }
+  .spinner {
+    width: 30px; height: 30px;
+    border: 2px solid #e0e0d8;
+    border-top-color: var(--purple-mid);
+    border-radius: 50%;
+    animation: spin 0.7s linear infinite;
+    margin: 0 auto 12px;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .loading-txt { font-size: 14px; color: var(--text-muted); margin-bottom: 12px; }
+  .steps { display: flex; gap: 6px; justify-content: center; flex-wrap: wrap; }
+  .step {
+    font-size: 11px;
+    padding: 3px 10px;
+    border-radius: 10px;
+    border: 0.5px solid var(--border);
+    color: var(--text-muted);
+  }
+  .step.done { background: var(--teal-light); color: var(--teal); border-color: var(--teal-border); }
+  .step.active { background: var(--purple-light); color: var(--purple); border-color: var(--purple-border); }
+
+  .stats {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 10px;
+    margin-bottom: 1.75rem;
+    display: none;
+  }
+  .stat-card {
+    background: var(--surface-alt);
+    border-radius: 8px;
+    padding: 12px 14px;
+  }
+  .stat-label { font-size: 11px; color: var(--text-muted); margin-bottom: 4px; }
+  .stat-value { font-size: 20px; font-weight: 600; color: var(--text); }
+
+  .raw-box {
+    background: var(--surface);
+    border: 0.5px solid var(--border);
+    border-radius: 10px;
+    padding: 12px 16px;
+    margin-bottom: 1.5rem;
+  }
+  .raw-label {
+    font-size: 11px;
+    color: var(--text-muted);
+    margin-bottom: 8px;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+  }
+  .raw-tags { display: flex; flex-wrap: wrap; gap: 6px; }
+  .raw-tag {
+    font-size: 12px;
+    padding: 3px 10px;
+    border-radius: 10px;
+    background: var(--surface-alt);
+    border: 0.5px solid var(--border);
+    color: var(--text);
+    cursor: pointer;
+    transition: background 0.12s;
+  }
+  .raw-tag:hover { background: var(--purple-light); color: var(--purple); }
+
+  .section-title {
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--text-muted);
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    margin-bottom: 10px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .category-block { margin-bottom: 2rem; }
+  .qgrid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+
+  @media (max-width: 600px) { .qgrid { grid-template-columns: 1fr; } .stats { grid-template-columns: repeat(2,1fr); } }
+
+  .qcard {
+    background: var(--surface);
+    border: 0.5px solid var(--border);
+    border-radius: 10px;
+    padding: 12px 14px;
+    cursor: pointer;
+    transition: border-color 0.12s, background 0.12s;
+  }
+  .qcard:hover { border-color: #bbb; background: var(--surface-alt); }
+  .qcard.open { border-color: var(--purple-mid); }
+  .qrow { display: flex; align-items: flex-start; gap: 7px; }
+  .qtext { font-size: 13px; color: var(--text); line-height: 1.55; }
+  .qtags { display: flex; gap: 5px; margin-top: 8px; flex-wrap: wrap; }
+  .qtag {
+    font-size: 11px;
+    padding: 2px 8px;
+    border-radius: 10px;
+  }
+  .tw { background: var(--purple-light); color: var(--purple); }
+  .ty { background: var(--teal-light); color: var(--teal); }
+  .th { background: var(--blue-light); color: var(--blue); }
+  .tc { background: var(--amber-light); color: var(--amber); }
+  .tu { background: var(--pink-light); color: var(--pink); }
+  .tt { background: var(--gray-light); color: var(--gray-mid); }
+  .src-tag { background: var(--surface-alt); color: var(--text-muted); border: 0.5px solid var(--border); }
+  .hbar { height: 3px; border-radius: 2px; margin-top: 10px; background: var(--purple-mid); }
+  .insight {
+    font-size: 12px;
+    color: var(--text-muted);
+    margin-top: 10px;
+    padding-top: 10px;
+    border-top: 0.5px solid var(--border);
+    line-height: 1.6;
+    display: none;
+  }
+  .qcard.open .insight { display: block; }
+
+  .export-row {
+    display: flex;
+    gap: 8px;
+    margin-top: 2rem;
+    justify-content: flex-end;
+    flex-wrap: wrap;
+  }
+  .ebtn {
+    font-size: 13px;
+    padding: 8px 16px;
+    border-radius: 8px;
+    border: 0.5px solid var(--border);
+    background: var(--surface);
+    color: var(--text-muted);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    transition: background 0.12s;
+    text-decoration: none;
+  }
+  .ebtn:hover { background: var(--surface-alt); }
+  .ebtn-primary { background: var(--purple); color: #fff; border-color: var(--purple); }
+  .ebtn-primary:hover { background: #3C3489; color: #fff; }
+
+  .empty {
+    text-align: center;
+    padding: 4rem 1rem;
+    color: var(--text-muted);
+  }
+  .empty-icon { font-size: 48px; margin-bottom: 16px; opacity: 0.3; }
+  .empty p { font-size: 14px; line-height: 1.8; }
+
+  footer {
+    text-align: center;
+    padding: 2rem;
+    font-size: 12px;
+    color: var(--text-muted);
+    border-top: 0.5px solid var(--border);
+    margin-top: 3rem;
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo">
+    <div class="logo-dot"></div>
+    KK Learning Tools
+  </div>
+  <span class="header-sub">市场问题挖掘器</span>
+</header>
+
+<div class="container">
+  <div class="hero">
+    <h1>市场在问什么？</h1>
+    <p>抓取 Google 真实搜索建议词，结合 Claude AI 分析用户意图<br>帮你找到内容选题、课程方向、文案切入点</p>
+  </div>
+
+  <div class="search-wrap">
+    <input type="text" id="kw" placeholder="输入关键词，例如：讲师、Facebook 广告、课程设计…" />
+    <button id="btn" onclick="go()">🔍 挖掘问题</button>
+  </div>
+
+  <div class="chips">
+    <span class="chips-label">热门：</span>
+    <span class="chip" onclick="qs('讲师')">讲师</span>
+    <span class="chip" onclick="qs('课程设计')">课程设计</span>
+    <span class="chip" onclick="qs('个人品牌')">个人品牌</span>
+    <span class="chip" onclick="qs('被动收入')">被动收入</span>
+    <span class="chip" onclick="qs('简报技巧')">简报技巧</span>
+    <span class="chip" onclick="qs('AI 工具')">AI 工具</span>
+    <span class="chip" onclick="qs('TTT 认证')">TTT 认证</span>
+    <span class="chip" onclick="qs('Facebook 广告')">Facebook 广告</span>
+  </div>
+
+  <div class="badges">
+    <span class="badge badge-real"><span class="dot dot-g"></span> Google 真实搜索词</span>
+    <span class="badge badge-ai"><span class="dot dot-ai"></span> Claude AI 意图分析</span>
+  </div>
+
+  <div class="err" id="err"></div>
+
+  <div class="loading" id="loading">
+    <div class="spinner"></div>
+    <p class="loading-txt" id="ltxt">正在抓取 Google 真实搜索词…</p>
+    <div class="steps">
+      <span class="step" id="s1">Google 建议词</span>
+      <span class="step" id="s2">扩展前缀词</span>
+      <span class="step" id="s3">Claude 分析意图</span>
+      <span class="step" id="s4">生成 insight</span>
+    </div>
+  </div>
+
+  <div class="stats" id="stats">
+    <div class="stat-card"><div class="stat-label">Google 真实词</div><div class="stat-value" id="sv-real">0</div></div>
+    <div class="stat-card"><div class="stat-label">问题总数</div><div class="stat-value" id="sv-total">0</div></div>
+    <div class="stat-card"><div class="stat-label">分类数</div><div class="stat-value" id="sv-cats">0</div></div>
+    <div class="stat-card"><div class="stat-label">关键词</div><div class="stat-value" id="sv-kw" style="font-size:13px;padding-top:4px">—</div></div>
+  </div>
+
+  <div id="area">
+    <div class="empty" id="emp">
+      <div class="empty-icon">🔭</div>
+      <p>输入关键词，即可挖掘市场真实问题<br>Green dot = Google 真实词 &nbsp;·&nbsp; Purple dot = AI 补充</p>
+    </div>
+  </div>
+</div>
+
+<footer>
+  KK Life Learning &nbsp;·&nbsp; <a href="https://kklearning.com" style="color:inherit">kklearning.com</a>
+</footer>
+
+<script>
+const ANTHROPIC_API_KEY = 'YOUR_ANTHROPIC_API_KEY'; // 替换为你的 API Key
+
+let allQ = [], curKw = '';
+
+function qs(k) { document.getElementById('kw').value = k; go(); }
+document.getElementById('kw').addEventListener('keydown', e => { if (e.key === 'Enter') go(); });
+
+function setStep(n) {
+  ['s1','s2','s3','s4'].forEach((id, i) => {
+    const el = document.getElementById(id);
+    el.className = i < n-1 ? 'step done' : i === n-1 ? 'step active' : 'step';
+  });
+}
+
+async function fetchSuggest(query) {
+  try {
+    const res = await fetch(`/api/suggest?q=${encodeURIComponent(query)}`);
+    if (res.ok) {
+      const data = await res.json();
+      return data.suggestions || [];
+    }
+  } catch (e) {}
+  return [];
+}
+
+async function go() {
+  const kw = document.getElementById('kw').value.trim();
+  if (!kw) return;
+  curKw = kw; allQ = [];
+
+  document.getElementById('emp') && (document.getElementById('emp').style.display = 'none');
+  document.getElementById('area').innerHTML = '';
+  document.getElementById('loading').classList.add('show');
+  document.getElementById('btn').disabled = true;
+  document.getElementById('err').classList.remove('show');
+  document.getElementById('stats').style.display = 'none';
+
+  setStep(1);
+  document.getElementById('ltxt').textContent = '正在抓取 Google 真实搜索词…';
+
+  const terms = new Set();
+  const base = await fetchSuggest(kw);
+  base.forEach(t => terms.add(t));
+
+  setStep(2);
+  document.getElementById('ltxt').textContent = '扩展问题前缀词…';
+
+  await Promise.allSettled(
+    ['什么是','为什么','如何','怎么','哪个'].map(async p => {
+      const r = await fetchSuggest(p + ' ' + kw);
+      r.forEach(t => terms.add(t));
+    })
+  );
+
+  const termsList = Array.from(terms).filter(t => t.length > 0).slice(0, 40);
+
+  setStep(3);
+  document.getElementById('ltxt').textContent = 'Claude 正在分析搜索意图…';
+
+  const hasReal = termsList.length > 0;
+  const prompt = `你是专业的搜索意图分析师，研究马来西亚华人市场搜索行为。
+
+关键词：「${kw}」
+${hasReal
+  ? `\nGoogle Autocomplete 真实搜索词（${termsList.length}条）：\n${termsList.map((t,i)=>`${i+1}. ${t}`).join('\n')}\n\n请基于这些真实词分析意图，并补充生成更多问题。`
+  : '\n请生成马来西亚华人市场真实会搜索的问题。'
+}
+
+只返回 JSON，格式：
+{"keyword":"${kw}","categories":[{"type":"什么是","intent":"what","questions":[{"q":"问题","is_real":true,"heat":85,"insight":"用户动机15字内"}]},{"type":"为什么","intent":"why","questions":[{"q":"问题","is_real":false,"heat":70,"insight":"动机"}]},{"type":"如何做","intent":"how","questions":[{"q":"问题","is_real":true,"heat":90,"insight":"动机"}]},{"type":"哪一个","intent":"which","questions":[{"q":"问题","is_real":false,"heat":65,"insight":"动机"}]},{"type":"谁适合","intent":"who","questions":[{"q":"问题","is_real":false,"heat":60,"insight":"动机"}]},{"type":"什么时候","intent":"when","questions":[{"q":"问题","is_real":false,"heat":50,"insight":"动机"}]}]}
+
+要求：每类3-5题，is_real标注来源，heat 0-100，insight精炼，只返回纯JSON`;
+
+  setStep(4);
+  document.getElementById('ltxt').textContent = 'Claude 生成分析报告…';
+
+  try {
+    const res = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-api-key': ANTHROPIC_API_KEY,
+        'anthropic-version': '2023-06-01'
+      },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-20250514',
+        max_tokens: 2500,
+        messages: [{ role: 'user', content: prompt }]
+      })
+    });
+    const data = await res.json();
+    const raw = (data.content || []).map(b => b.text || '').join('').trim();
+    const parsed = JSON.parse(raw.replace(/```json|```/g, '').trim());
+    parsed._terms = termsList;
+    render(parsed);
+  } catch (err) {
+    document.getElementById('loading').classList.remove('show');
+    document.getElementById('btn').disabled = false;
+    const em = document.getElementById('err');
+    em.textContent = '分析失败，请重试。' + (err.message || '');
+    em.classList.add('show');
+  }
+}
+
+const intentCls = { what:'tw', why:'ty', how:'th', which:'tc', who:'tu', when:'tt' };
+
+function render(data) {
+  document.getElementById('loading').classList.remove('show');
+  document.getElementById('btn').disabled = false;
+
+  let total = 0;
+  data.categories.forEach(c => c.questions.forEach(q => { total++; allQ.push(q.q); }));
+
+  document.getElementById('sv-real').textContent = data._terms?.length || 0;
+  document.getElementById('sv-total').textContent = total;
+  document.getElementById('sv-cats').textContent = data.categories.length;
+  document.getElementById('sv-kw').textContent = data.keyword;
+  document.getElementById('stats').style.display = 'grid';
+
+  let html = '';
+
+  if (data._terms?.length) {
+    html += `<div class="raw-box">
+      <div class="raw-label"><span class="dot dot-g"></span> Google 抓取到的真实搜索词（${data._terms.length} 个）— 点击任意词可继续挖掘</div>
+      <div class="raw-tags">${data._terms.map(t => `<span class="raw-tag" onclick="qs('${t.replace(/'/g,"\\'")}')">  ${t}</span>`).join('')}</div>
+    </div>`;
+  }
+
+  data.categories.forEach(cat => {
+    const tc = intentCls[cat.intent] || 'tw';
+    html += `<div class="category-block">
+      <div class="section-title">${cat.type}</div>
+      <div class="qgrid">`;
+    cat.questions.forEach(q => {
+      const id = 'q' + Math.random().toString(36).slice(2,8);
+      const bw = Math.max(10, Math.round(q.heat || 50));
+      html += `<div class="qcard" id="${id}" onclick="toggle('${id}')">
+        <div class="qrow">
+          <span class="dot ${q.is_real ? 'dot-g' : 'dot-ai'}" style="margin-top:4px;flex-shrink:0"></span>
+          <span class="qtext">${q.q}</span>
+        </div>
+        <div class="qtags">
+          <span class="qtag ${tc}">${cat.type}</span>
+          <span class="qtag src-tag">${q.is_real ? 'Google 真实' : 'AI 补充'}</span>
+        </div>
+        <div class="hbar" style="width:${bw}%"></div>
+        <div class="insight">💡 ${q.insight}</div>
+      </div>`;
+    });
+    html += `</div></div>`;
+  });
+
+  html += `<div class="export-row">
+    <button class="ebtn" onclick="copyAll()">📋 复制全部问题</button>
+    <button class="ebtn ebtn-primary" onclick="exportCSV()">⬇ 导出 CSV</button>
+  </div>`;
+
+  document.getElementById('area').innerHTML = html;
+}
+
+function toggle(id) {
+  const el = document.getElementById(id);
+  if (el) el.classList.toggle('open');
+}
+
+function copyAll() {
+  if (!allQ.length) return;
+  navigator.clipboard.writeText(allQ.join('\n')).then(() => {
+    const b = document.querySelector('.ebtn');
+    if (b) { b.textContent = '✅ 已复制！'; setTimeout(() => { b.textContent = '📋 复制全部问题'; }, 1500); }
+  });
+}
+
+function exportCSV() {
+  if (!allQ.length) return;
+  const csv = '问题\n' + allQ.map(q => `"${q.replace(/"/g,'""')}"`).join('\n');
+  const blob = new Blob(['\uFEFF' + csv], { type: 'text/csv;charset=utf-8;' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = `market-questions-${curKw}.csv`; a.click();
+  URL.revokeObjectURL(url);
+}
+</script>
+</body>
+</html>
