@@ -1,13 +1,19 @@
 [build]
-  publish = "public"
+  command = "npm run build"
+  publish = "dist"
   functions = "netlify/functions"
 
 [[redirects]]
-  from = "/api/suggest"
-  to = "/.netlify/functions/suggest"
+  from = "/*"
+  to = "/index.html"
   status = 200
 
-[[redirects]]
-  from = "/api/claude"
-  to = "/.netlify/functions/claude"
-  status = 200
+[functions]
+  timeout = 26
+
+[[headers]]
+  for = "/.netlify/functions/*"
+  [headers.values]
+    Access-Control-Allow-Origin = "*"
+    Access-Control-Allow-Headers = "Content-Type"
+    Access-Control-Allow-Methods = "GET, POST, OPTIONS"
