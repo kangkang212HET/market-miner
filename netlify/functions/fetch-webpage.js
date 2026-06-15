@@ -1,17 +1,13 @@
 exports.handler = async function(event) {
   const headers = {
     'Access-Control-Allow-Origin': '*',
-    'Access-Control-Allow-Headers': 'Content-Type',
-    'Access-Control-Allow-Methods': 'POST, OPTIONS',
+    'Access-Control-Allow-Headers': '*',
+    'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
     'Content-Type': 'application/json'
   };
 
   if (event.httpMethod === 'OPTIONS') {
-    return { statusCode: 200, headers, body: '' };
-  }
-
-  if (event.httpMethod !== 'POST') {
-    return { statusCode: 405, headers, body: JSON.stringify({ error: 'Method not allowed' }) };
+    return { statusCode: 204, headers, body: '' };
   }
 
   let url;
@@ -59,22 +55,13 @@ exports.handler = async function(event) {
 
     const titleMatch = html.match(/<title[^>]*>([^<]+)<\/title>/i);
     const title = titleMatch ? titleMatch[1].trim() : url;
-
     text = text.substring(0, 3000);
 
-    if (text.length < 50) throw new Error('内容太少，该网页可能需要登录或动态加载');
+    if (text.length < 50) throw new Error('内容太少');
 
-    return {
-      statusCode: 200,
-      headers,
-      body: JSON.stringify({ title, text, chars: text.length })
-    };
+    return { statusCode: 200, headers, body: JSON.stringify({ title, text, chars: text.length }) };
 
   } catch (err) {
-    return {
-      statusCode: 200,
-      headers,
-      body: JSON.stringify({ error: err.message || '抓取失败' })
-    };
+    return { statusCode: 200, headers, body: JSON.stringify({ error: err.message || '抓取失败' }) };
   }
 };
